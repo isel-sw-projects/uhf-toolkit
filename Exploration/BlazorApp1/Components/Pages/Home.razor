@@ -1,0 +1,46 @@
+﻿@page "/"
+
+<PageTitle>BRHC - 18 examples in Blazor</PageTitle>
+
+<h1>18 BRHC examples in Blazor</h1>
+
+<p>Reimplementation of the 18 examples from <code>HtmlFlow-Datastar-Examples</code> (BRHC -
+    Backend-driven Reactive Hypermedia Controls) in Blazor Server. In BRHC each example is
+    static HTML with Datastar attributes and patches over SSE; here state lives in the circuit
+    C# and SignalR delivers render-tree diffs.</p>
+
+    <ul>
+        <li><a href="counter">counter</a> - counter with @@post(increment/decrement)</li>
+        <li><a href="counter-signals">counter-signals</a> - signals variant</li>
+        <li><a href="click-to-edit">click-to-edit</a> - editing via fragments (@@put/@@get)</li>
+        <li><a href="click-to-edit-signals">click-to-edit-signals</a> - signals variant</li>
+        <li><a href="click-to-load">click-to-load</a> - load by pagination (patch-signals + patch-elements)</li>
+        <li><a href="active-search">active-search</a> - search with debounce</li>
+        <li><a href="bulk-update">bulk-update</a> - patching several rows</li>
+        <li><a href="delete-row">delete-row</a> - row removal (@@delete)</li>
+        <li><a href="edit-row">edit-row</a> - inline row editing (@@get + @@patch)</li>
+        <li><a href="inline-validation">inline-validation</a> - per-key validation (@@post with debounce)</li>
+        <li><a href="signal-complex-domain">signal-complex-domain</a> - nested signals \$person.name</li>
+        <li><a href="lazy-tabs">lazy-tabs</a> - tabs with on-demand loading</li>
+        <li><a href="lazy-load">lazy-load</a> - deferred content via data-init</li>
+        <li><a href="progress-bar">progress-bar</a> - stream of states up to 100%</li>
+        <li><a href="progressive-load">progressive-load</a> - sequential fragments</li>
+        <li><a href="infinite-scroll">infinite-scroll</a> - data-on-intersect on the sentinel</li>
+        <li><a href="file-upload">file-upload</a> - files as base64 in signals (1 MB limit)</li>
+        <li><a href="todo-mvc">todo-mvc</a> - CRUD via @@post/@@patch/@@delete</li>
+    </ul>
+
+    <h2 class="mt-4">Additional examples (exploration)</h2>
+
+    <p>They cover the behaviours the original corpus does not exercise - the same six in
+        Kotlin, LiveView e Vaadin:</p>
+
+        <ul>
+            <li><a href="optimistic-actions">optimistic-actions</a> - optimistic action with visible rollback (Item 3 always
+                sempre)</li>
+                <li><a href="multi-client-counter">multi-client-counter</a> - one shared value, N synchronised clients</li>
+                <li><a href="deeplink-state">deeplink-state</a> - state (filter/page) read from the URL and restored by deep link</li>
+                <li><a href="streaming-input">streaming-input</a> - chunk stream with the input active in parallel</li>
+                <li><a href="large-list">large-list</a> - 500 rows with keys + reorder (keyed morph)</li>
+                <li><a href="binary-payload">binary-payload</a> - bytes in the POST body + SHA-256 digest (no base64)</li>
+            </ul>

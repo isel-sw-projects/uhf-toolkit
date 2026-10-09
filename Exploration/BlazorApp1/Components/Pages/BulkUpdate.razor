@@ -1,0 +1,103 @@
+@page "/bulk-update"
+@rendermode InteractiveServer
+
+<PageTitle>Bulk Update</PageTitle>
+
+<h1>Bulk Update</h1>
+
+<p>Trace of the <em>Bulk Update</em> example from <code>HtmlFlow-Datastar-Examples</code>. In BRHC the selection array
+    travels as a signal and the server returns <code>patch-signals</code> (selection reset) + <code>patch-elements</code>
+    (re-rendered rows). Here the selections are a <code>bool[]</code> in C# on the server.</p>
+
+<div class="demo-box">
+    <table class="table">
+        <thead>
+            <tr>
+                <th><input type="checkbox" checked="@selectAll" @onchange="ToggleSelectAll" /></th>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Status</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (var i = 0; i < users.Count; i++)
+            {
+                var rowIndex = i;
+                <tr>
+                    <td>
+                        <input type="checkbox" checked="@selections[i]" @onchange="(e) => SetSelection(rowIndex, e.Value as bool? == true)" />
+                    </td>
+                    <td>@users[i].Name</td>
+                    <td>@users[i].Email</td>
+                    <td>@StatusText(users[i].Status)</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <div role="group">
+        <button class="btn btn-success" disabled="@isLoading" @onclick="() => UpdateStatus(UserStatus.Active)">Activate</button>
+        <button class="btn btn-danger" disabled="@isLoading" @onclick="() => UpdateStatus(UserStatus.Inactive)">Deactivate</button>
+    </div>
+</div>
+
+@code {
+    private readonly List<User> users =
+    [
+        new("Joe Smith", "joe@smith.org", UserStatus.Active),
+        new("Angie MacDowell", "angie@macdowell.org", UserStatus.Active),
+        new("Fuqua Tarkenton", "fuqua@tarkenton.org", UserStatus.Inactive),
+        new("Kim Yee", "kim@yee.org", UserStatus.Inactive),
+    ];
+
+    private readonly bool[] selections = new bool[4];
+    private bool selectAll;
+    private bool isLoading;
+
+    private void SetSelection(int index, bool value)
+    {
+        selections[index] = value;
+    }
+
+    private void ToggleSelectAll()
+    {
+        var allSelected = selections.All(s => s);
+        for (var i = 0; i < selections.Length; i++)
+        {
+            selections[i] = !allSelected;
+        }
+        selectAll = !allSelected;
+    }
+
+    private async Task UpdateStatus(UserStatus status)
+    {
+        if (isLoading)
+        {
+            return;
+        }
+        isLoading = true;
+
+        for (var i = 0; i < users.Count; i++)
+        {
+            if (selections[i])
+            {
+                users[i] = users[i] with { Status = status };
+            }
+        }
+
+        // Equivalent to BRHC's sendPatchSignals{"selections": [false,...]}
+        for (var i = 0; i < selections.Length; i++)
+        {
+            selections[i] = false;
+        }
+        selectAll = false;
+
+        isLoading = false;
+    }
+
+    private static string StatusText(UserStatus s) => s == UserStatus.Active ? "Active" : "Inactive";
+
+    private enum UserStatus { Active, Inactive }
+
+    private sealed record User(string Name, string Email, UserStatus Status);
+}

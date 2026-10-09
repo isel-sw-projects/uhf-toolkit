@@ -1,0 +1,27 @@
+@page "/counter-signals"
+@rendermode InteractiveServer
+
+<PageTitle>Counter (Signals)</PageTitle>
+
+<h1>Counter (Signals)</h1>
+
+<p>Trace of the <em>counter-signals</em> variant of <code>HtmlFlow-Datastar-Examples</code>.
+    In BRHC a <code>count</code> signal lives in the client and is synchronised over SSE
+    (<code>data-init @@get('/counter/events')</code>); the button issues <code>@@post</code> and the server
+    emits the new value on the stream. Here the value is a C# field in the circuit: the
+"synchronisation" is SignalR itself. <strong>Teaching note:</strong> the counter/counter-signals distinction collapses
+    in Blazor - there is no separate typed signal for the UHF to type.</p>
+
+    <div class="demo-box">
+        <p class="fs-3">Current count: <strong>@count</strong></p>
+        <button class="btn btn-primary" @onclick="Increment">Increment</button>
+        <button class="btn btn-secondary" @onclick="Decrement">Decrement</button>
+    </div>
+
+@code {
+    // Estado no servidor (circuito Blazor), cf. MutableStateFlow<Int> do Ktor.
+    private int count = 0;
+
+    private void Increment() => count++;
+    private void Decrement() => count--;
+}

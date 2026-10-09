@@ -1,0 +1,86 @@
+@page "/optimistic-actions"
+@rendermode InteractiveServer
+
+<PageTitle>Optimistic Actions</PageTitle>
+
+<h1>Optimistic Actions</h1>
+
+<p>Trace of the <em>optimistic-actions</em> example (o caso de rollback que o corpus original
+    does not). In BRHC, the button shows the <em>pending</em> state via <code>data-indicator</code>/
+    <code>data-attr:disabled</code> enquanto o POST voa; o servidor confirma o valor ou reverte-o
+    por <code>patch-elements</code> no <code>#items-table</code> - o "Item 3" falha sempre, e o
+    the rollback stays visible. Here C# does the same: the pending badge is component state and
+    SignalR delivers the diff. <strong>Teaching note:</strong> in Blazor the optimistic state is a
+    variable (no declared signal); rollback is assigning the previous value - the equivalent of
+    the Datastar rollback patch.
+</p>
+
+<div class="demo-box">
+    @if (serverError is not null)
+    {
+        <div class="alert alert-danger py-2">@serverError</div>
+    }
+
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Item</th>
+                <th>Value</th>
+                <th>Action</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var item in items)
+            {
+                <tr>
+                    <td>@item.Label</td>
+                    <td>@item.Value</td>
+                    <td>
+                        <button class="btn btn-sm btn-primary" disabled="@item.Pending" @onclick="() => Apply(item)">
+                            @(item.Pending ? "pending…" : "+10")
+                        </button>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+@code {
+    private sealed record OptimisticItem(int Id, string Label, int Value, bool Pending = false, bool Failed = false);
+
+    // "Item 3" falha sempre - alimenta o caminho de rollback (igual ao Kotlin).
+    private readonly List<OptimisticItem> items = new()
+    {
+        new(0, "Item 1", 10),
+        new(1, "Item 2", 20),
+        new(2, "Item 3", 30, Failed: true),
+        new(3, "Item 4", 40),
+    };
+
+    private string? serverError;
+
+    // Equivalent to BRHC's POST /optimistic-actions/action: pending -> confirmation
+    // or rollback; the error badge arrives as the patch of the `error` signal.
+    private async Task Apply(OptimisticItem item)
+    {
+        serverError = null;
+        var index = items.FindIndex(x => x.Id == item.Id);
+        var willFail = items[index].Failed;
+
+        items[index] = items[index] with { Pending = true };
+        StateHasChanged();
+
+        await Task.Delay(600); // simulated latency, as in the Kotlin example
+
+        items[index] = willFail
+            ? items[index] with { Pending = false }
+            : items[index] with { Value = items[index].Value + 10, Pending = false };
+
+        if (willFail)
+        {
+            serverError = "Servidor recusou: falha simulada (rollback)";
+        }
+        StateHasChanged();
+    }
+}

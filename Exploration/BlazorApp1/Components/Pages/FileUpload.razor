@@ -1,0 +1,76 @@
+@page "/file-upload"
+@rendermode InteractiveServer
+
+
+<PageTitle>File Upload</PageTitle>
+
+<h1>File Upload</h1>
+
+<p>Trace of the <em>file-upload</em> example from <code>HtmlFlow-Datastar-Examples</code>.
+    In BRHC, files are serialised into signals (<code>data-bind:files</code> in base64)
+    and sent in the <code>@@post</code> body; the server validates the 1 MB limit and returns the
+    rendered table. Here Blazor provides the <code>InputFile</code> component with streaming
+    primitive (<code>IBrowserFile</code>) - no manual serialisation into signals.
+    <strong>Teaching note:</strong> this example highlights the cost of the Datastar signal
+    channel for binary payloads; Blazor solves it with a dedicated primitive (but the HTML
+    stops being the affordance - the upload is imperative code).
+</p>
+
+<div class="demo-box">
+    <InputFile OnChange="OnFilesSelected" multiple class="form-control" />
+
+    @if (accepted.Count > 0 || rejected.Count > 0)
+    {
+        <table class="table mt-3">
+            <thead>
+                <tr>
+                    <th>Nome</th>
+                    <th>Tamanho</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var f in accepted)
+                {
+                    <tr class="table-success">
+                        <td>@f.Name</td>
+                        <td>@FormatSize(f.Size)</td>
+                        <td>✔ aceite</td>
+                    </tr>
+                }
+                @foreach (var (name, size) in rejected)
+                {
+                    <tr class="table-danger">
+                        <td>@name</td>
+                        <td>@FormatSize(size)</td>
+                        <td>✘ &gt; 1 MB</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    }
+</div>
+
+@code {
+    private const long MaxSize = 1024 * 1024; // 1 MB, as in the BRHC example
+
+    private List<IBrowserFile> accepted = new();
+    private List<(string Name, long Size)> rejected = new();
+
+    // Equivalent to BRHC's @@post('/file-upload') with files in the signals; here
+    // InputFile hands over metadata (and the stream, if we requested OpenReadStream).
+    private void OnFilesSelected(InputFileChangeEventArgs e)
+    {
+        accepted = new();
+        rejected = new();
+
+        foreach (var file in e.GetMultipleFiles(maximumFileCount: 10))
+        {
+            if (file.Size <= MaxSize) accepted.Add(file);
+            else rejected.Add((file.Name, file.Size));
+        }
+    }
+
+    private static string FormatSize(long bytes) =>
+        bytes < 1024 ? $"{bytes} B" : $"{bytes / 1024.0:F1} KB";
+}

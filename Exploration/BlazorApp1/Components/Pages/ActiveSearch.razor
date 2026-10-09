@@ -1,0 +1,86 @@
+@page "/active-search"
+@rendermode InteractiveServer
+
+<PageTitle>Active Search</PageTitle>
+
+<h1>Active Search</h1>
+
+<p>Trace of the <em>Active Search</em> example from <code>HtmlFlow-Datastar-Examples</code>, reimplemented in Blazor
+    Server (a single C# programming model).</p>
+
+    <div class="demo-box">
+        <input type="text" placeholder="Search..." value="@search" @oninput="OnSearchInput" />
+
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>First Name</th>
+                    <th>Last Name</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var contact in filteredContacts)
+                {
+                    <tr>
+                        <td>@contact.FirstName</td>
+                        <td>@contact.LastName</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <p class="text-muted small">
+            @if (isSearching)
+            {
+                <em>Filtering</em>
+            }
+            else
+            {
+                <span>@filteredContacts.Count() of @AllContacts.Count() contacts</span>
+            }
+        </p>
+    </div>
+
+@code {
+    private string search = "";
+    private bool isSearching;
+
+    // Server-side source of truth: the whole list lives in C#, just as the state
+    // does in BRHC. The difference: no hypermedia controls here,
+    // no SSE and no `?datastar=` serialisation - SignalR delivers the re-render.
+    private static readonly IReadOnlyList<Contact> AllContacts =
+    [
+        new("Abraham", "Altenwerth"),
+        new("Adan", "Padberg"),
+        new("Aiden", "Haley"),
+        new("Alec", "Kris"),
+        new("Alfredo", "Nitzsche"),
+        new("Alisha", "Rogahn"),
+        new("Alvah", "Bins"),
+        new("Anabel", "Lehner"),
+        new("Angela", "Swift"),
+        new("Annamarie", "Rippin"),
+    ];
+
+    private IEnumerable<Contact> filteredContacts =>
+        string.IsNullOrWhiteSpace(search)
+            ? AllContacts
+            : AllContacts.Where(c =>
+                  c.FirstName.Contains(search, StringComparison.OrdinalIgnoreCase) ||
+                  c.LastName.Contains(search, StringComparison.OrdinalIgnoreCase));
+
+    // Debounce analogous to Datastar's data-on:input__debounce.200ms: in BRHC the term travels
+    // in `?datastar=` up to the handler; here the filter re-computes on every keystroke and
+    // the isSearching indicator is debounced in code (Blazor has no oninput:after directive).
+    private async Task OnSearchInput(ChangeEventArgs e)
+    {
+        search = e.Value?.ToString() ?? "";
+        isSearching = true;
+        StateHasChanged();
+        await Task.Delay(200);
+        isSearching = false;
+        StateHasChanged();
+    }
+
+    private sealed record Contact(string FirstName, string LastName);
+}

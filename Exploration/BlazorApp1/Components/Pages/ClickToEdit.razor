@@ -1,0 +1,83 @@
+@page "/click-to-edit"
+@rendermode InteractiveServer
+
+<PageTitle>Click to Edit</PageTitle>
+
+<h1>Click to Edit</h1>
+
+<p>Trace of the <em>Click to Edit</em> example from <code>HtmlFlow-Datastar-Examples</code>. No BRHC o "Edit" devolve um
+    <code>patch-elements</code> that replaces the fragment with a form and "Save" issues a <code>PUT</code> with a body
+    in JSON and returns the display fragment. Here edit mode is a C# boolean and the inputs are bound to the model
+    do servidor.
+</p>
+
+<div class="demo-box">
+    @if (isEditing)
+    {
+        <div>
+            <label>First Name
+                <input type="text" @bind="editFirstName" @bind:event="oninput" /></label>
+                <label>Last Name
+                    <input type="text" @bind="editLastName" @bind:event="oninput" /></label>
+                    <label>Email
+                        <input type="email" @bind="editEmail" @bind:event="oninput" /></label>
+
+                        <div role="group">
+                            <button class="btn btn-success" @onclick="Save">Save</button>
+                            <button class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+                        </div>
+                    </div>
+                }
+    else
+                {
+                    <p>First Name: @profile.FirstName</p>
+                    <p>Last Name: @profile.LastName</p>
+                    <p>Email: @profile.Email</p>
+
+                    <div role="group">
+                        <button class="btn btn-primary" @onclick="EnterEditMode">Edit</button>
+                        <button class="btn btn-warning" @onclick="Reset">Reset</button>
+                    </div>
+                }
+            </div>
+
+@code {
+    private Profile profile = DefaultUser;
+    private bool isEditing;
+
+    private string editFirstName = "";
+    private string editLastName = "";
+    private string editEmail = "";
+
+    private static readonly Profile DefaultUser = new("John", "Doe", "joe@blow.com");
+
+    private void EnterEditMode()
+    {
+        editFirstName = profile.FirstName;
+        editLastName = profile.LastName;
+        editEmail = profile.Email;
+        isEditing = true;
+    }
+
+    private void Save()
+    {
+        // equivale ao PUT /click-to-edit com o corpo {"firstName":...}
+        profile = new Profile(editFirstName, editLastName, editEmail);
+        isEditing = false;
+    }
+
+    private void Cancel()
+    {
+        // equivale ao GET /click-to-edit/cancel - devolve o profile atual sem alterar
+        isEditing = false;
+    }
+
+    private void Reset()
+    {
+        // equivale ao PATCH /click-to-edit/reset
+        profile = DefaultUser;
+        isEditing = false;
+    }
+
+    private sealed record Profile(string FirstName, string LastName, string Email);
+}

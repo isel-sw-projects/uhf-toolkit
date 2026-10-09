@@ -1,0 +1,343 @@
+/* See the Tailwind configuration guide for advanced usage
+   https://tailwindcss.com/docs/configuration */
+
+@import "tailwindcss" source(none);
+@import "phoenix-colocated/demo/colocated.css";
+@source "../css";
+@source "../js";
+@source "../../lib/demo_web";
+/* Required for Tailwind to automatically pick up changes in colocated CSS files in dev */
+@source "../../_build/dev/phoenix-colocated/demo/*/";
+
+/* A Tailwind plugin that makes "hero-#{ICON}" classes available.
+   The heroicons installation itself is managed by your mix.exs */
+@plugin "../vendor/heroicons";
+
+/* daisyUI Tailwind Plugin. */
+@plugin "daisyui/packages/bundle/daisyui" {
+  themes: false;
+}
+
+/* daisyUI theme plugin.
+  We ship with two themes, a light one inspired on Phoenix colors and a dark one inspired
+  on Elixir colors. Build your own at: https://daisyui.com/theme-generator/ */
+@plugin "daisyui/packages/bundle/daisyui-theme" {
+  name: "dark";
+  default: false;
+  prefersdark: true;
+  color-scheme: "dark";
+  --color-base-100: oklch(30.33% 0.016 252.42);
+  --color-base-200: oklch(25.26% 0.014 253.1);
+  --color-base-300: oklch(20.15% 0.012 254.09);
+  --color-base-content: oklch(97.807% 0.029 256.847);
+  --color-primary: oklch(58% 0.233 277.117);
+  --color-primary-content: oklch(96% 0.018 272.314);
+  --color-secondary: oklch(58% 0.233 277.117);
+  --color-secondary-content: oklch(96% 0.018 272.314);
+  --color-accent: oklch(60% 0.25 292.717);
+  --color-accent-content: oklch(96% 0.016 293.756);
+  --color-neutral: oklch(37% 0.044 257.287);
+  --color-neutral-content: oklch(98% 0.003 247.858);
+  --color-info: oklch(58% 0.158 241.966);
+  --color-info-content: oklch(97% 0.013 236.62);
+  --color-success: oklch(60% 0.118 184.704);
+  --color-success-content: oklch(98% 0.014 180.72);
+  --color-warning: oklch(66% 0.179 58.318);
+  --color-warning-content: oklch(98% 0.022 95.277);
+  --color-error: oklch(58% 0.253 17.585);
+  --color-error-content: oklch(96% 0.015 12.422);
+  --radius-selector: 0.25rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.5rem;
+  --size-selector: 0.21875rem;
+  --size-field: 0.21875rem;
+  --border: 1.5px;
+  --depth: 1;
+  --noise: 0;
+}
+
+@plugin "daisyui/packages/bundle/daisyui-theme" {
+  name: "light";
+  default: true;
+  prefersdark: false;
+  color-scheme: "light";
+  --color-base-100: oklch(98% 0 0);
+  --color-base-200: oklch(96% 0.001 286.375);
+  --color-base-300: oklch(92% 0.004 286.32);
+  --color-base-content: oklch(21% 0.006 285.885);
+  --color-primary: oklch(70% 0.213 47.604);
+  --color-primary-content: oklch(98% 0.016 73.684);
+  --color-secondary: oklch(55% 0.027 264.364);
+  --color-secondary-content: oklch(98% 0.002 247.839);
+  --color-accent: oklch(0% 0 0);
+  --color-accent-content: oklch(100% 0 0);
+  --color-neutral: oklch(44% 0.017 285.786);
+  --color-neutral-content: oklch(98% 0 0);
+  --color-info: oklch(62% 0.214 259.815);
+  --color-info-content: oklch(97% 0.014 254.604);
+  --color-success: oklch(70% 0.14 182.503);
+  --color-success-content: oklch(98% 0.014 180.72);
+  --color-warning: oklch(66% 0.179 58.318);
+  --color-warning-content: oklch(98% 0.022 95.277);
+  --color-error: oklch(58% 0.253 17.585);
+  --color-error-content: oklch(96% 0.015 12.422);
+  --radius-selector: 0.25rem;
+  --radius-field: 0.25rem;
+  --radius-box: 0.5rem;
+  --size-selector: 0.21875rem;
+  --size-field: 0.21875rem;
+  --border: 1.5px;
+  --depth: 1;
+  --noise: 0;
+}
+
+/* Add variants based on LiveView classes */
+@custom-variant phx-click-loading (.phx-click-loading&, .phx-click-loading &);
+@custom-variant phx-submit-loading (.phx-submit-loading&, .phx-submit-loading &);
+@custom-variant phx-change-loading (.phx-change-loading&, .phx-change-loading &);
+
+/* Use the data attribute for dark mode  */
+@custom-variant dark (&:where([data-theme=dark], [data-theme=dark] *));
+
+/* Make LiveView wrapper divs transparent for layout */
+[data-phx-session], [data-phx-teleported-src] { display: contents }
+
+/*
+ * Componentes dos 18 exemplos.
+ *
+ * Os templates usam nomes semânticos (demo-box, muted, progress-outer, …)
+ * porque vêm do HTML do HtmlFlow-Datastar-Examples; aqui ficam definidos
+ * com Tailwind v4 (@utility regista-os como classes reais utilizáveis).
+ */
+
+@utility demo-box {
+  /* Caixa que envolve o corpo de cada exemplo - o "palco" da demo */
+  margin-block-start: 1rem;
+  padding: 1.25rem;
+  border-radius: 0.75rem;
+  border: 1px solid var(--color-base-300);
+  background-color: var(--color-base-100);
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.08);
+}
+
+@utility muted {
+  color: oklch(from var(--color-base-content) calc(l * 0.55) c h);
+  font-size: 0.875rem;
+}
+
+@utility lead {
+  font-size: 1.05rem;
+  line-height: 1.6;
+  font-weight: 500;
+}
+
+/* --- Lazy Load --- */
+@utility loaded-box {
+  padding: 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--color-success);
+  background-color: oklch(from var(--color-success) calc(l * 0.92) c h);
+}
+
+/* --- Lazy Tabs --- */
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  border-bottom: 1px solid var(--color-base-300);
+  padding-bottom: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.tabs button {
+  padding: 0.375rem 0.875rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-base-content);
+  transition: background-color 0.15s ease;
+}
+
+.tabs button:hover { background-color: var(--color-base-200); }
+
+.tabs button.active {
+  background-color: var(--color-primary);
+  color: var(--color-primary-content);
+}
+
+.tab-content { min-height: 3rem; }
+
+/* --- Progress Bar --- */
+.progress-outer {
+  height: 1.75rem;
+  border-radius: 9999px;
+  background-color: var(--color-base-200);
+  overflow: hidden;
+}
+
+.progress-inner {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-primary-content);
+  background-color: var(--color-primary);
+  border-radius: 9999px;
+  transition: width 0.15s ease-out;
+  min-width: 2.5rem;
+}
+
+/* --- Active Search / tabelas --- */
+.demo-box table { width: 100%; margin-block-start: 0.75rem; }
+
+.demo-box thead th {
+  text-align: left;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: oklch(from var(--color-base-content) calc(l * 0.6) c h);
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid var(--color-base-300);
+}
+
+.demo-box tbody td {
+  padding: 0.5rem 0.75rem;
+  border-bottom: 1px solid oklch(from var(--color-base-300) l c h / 0.5);
+}
+
+.demo-box tbody tr:hover { background-color: var(--color-base-200); }
+
+.demo-box input[type="text"],
+.demo-box input[type="email"] {
+  width: 100%;
+  max-width: 24rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.375rem;
+  border: 1px solid var(--color-base-300);
+  background-color: var(--color-base-100);
+  color: var(--color-base-content);
+}
+
+.demo-box input:focus-visible {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 1px;
+}
+
+.demo-box button {
+  padding: 0.375rem 0.875rem;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  border: 1px solid var(--color-base-300);
+  background-color: var(--color-base-100);
+  color: var(--color-base-content);
+  cursor: pointer;
+  transition: background-color 0.15s ease, border-color 0.15s ease;
+}
+
+.demo-box button:hover:not(:disabled) {
+  background-color: var(--color-base-200);
+  border-color: var(--color-primary);
+}
+
+.demo-box button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.demo-box .error {
+  display: block;
+  color: var(--color-error);
+  font-size: 0.8125rem;
+  min-height: 1.1rem;
+}
+
+.demo-box label {
+  display: block;
+  margin-block-start: 0.75rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+
+/* --- File Upload --- */
+.demo-box .ok { color: var(--color-success); }
+.demo-box .erro { color: var(--color-error); }
+
+/* --- Bulk Update / Delete Row / Edit Row: checkboxes e acções --- */
+.demo-box td button { padding: 0.25rem 0.625rem; font-size: 0.8125rem; }
+
+/* --- TodoMVC --- */
+.todo-add input {
+  max-width: none !important;
+  font-size: 1.05rem;
+  padding: 0.75rem 1rem !important;
+}
+
+.todo-list {
+  margin-block: 0.75rem;
+  border-top: 1px solid var(--color-base-300);
+}
+
+.todo-list li {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.25rem;
+  border-bottom: 1px solid oklch(from var(--color-base-300) l c h / 0.5);
+}
+
+.todo-list li.completed label {
+  text-decoration: line-through;
+  color: oklch(from var(--color-base-content) calc(l * 0.5) c h);
+}
+
+.todo-list form.todo-edit { flex: 1; }
+
+.todo-list input[name="title"] {
+  max-width: none !important;
+  width: 100%;
+  padding: 0.25rem 0.5rem !important;
+}
+
+.todo-list label { flex: 1; margin: 0; cursor: pointer; font-size: 0.9375rem; }
+
+.todo-list .destroy {
+  border: none !important;
+  background: none !important;
+  color: var(--color-error);
+  font-size: 1rem;
+  padding: 0.25rem !important;
+}
+
+.todo-list .destroy:hover { background-color: var(--color-base-200) !important; }
+
+.todo-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+  margin-block-start: 0.75rem;
+  font-size: 0.875rem;
+}
+
+.todo-filters { display: flex; gap: 0.25rem; }
+
+.todo-filter {
+  text-transform: capitalize;
+  border: none !important;
+  background: none !important;
+  padding: 0.25rem 0.5rem !important;
+  border-radius: 0.25rem;
+}
+
+.todo-filter.selected {
+  background-color: var(--color-base-300) !important;
+  font-weight: 600;
+}
+
+/* --- Counter --- */
+.fs-3 { font-size: 1.25rem; margin-block-end: 0.75rem; }
+.fs-3 strong { font-size: 1.5rem; font-variant-numeric: tabular-nums; }

@@ -1,0 +1,110 @@
+@page "/deeplink-state"
+@rendermode InteractiveServer
+
+<PageTitle>Deep-Link State</PageTitle>
+
+<h1>Deep-Link State</h1>
+
+<p>Trace of the <em>deeplink-state</em> example: rebuilding the interaction state from the
+    URL (filter/page in the query string) - the page is served already in the correct state. In BRHC the server
+    semeia os <code>data-signals</code> com o estado vindo da URL e devolve as rows iniciais; aqui
+    Blazor reads <code>NavigationManager</code> in <code>OnInitialized</code> and the component is born
+    with the right <code>filter</code>/<code>page</code>. <strong>Teaching note:</strong> in both
+    models the server reads the URL; what changes is where the state lives - in the seeded signals
+    (Datastar) ou nos campos do componente (circuito).</p>
+
+    <div class="demo-box">
+        <div class="btn-group mb-3" role="group">
+            @foreach (var f in new[] { "all", "active", "inactive" })
+            {
+                <button class="btn btn-sm @(filter == f ? "btn-primary" : "btn-outline-primary")"
+                        @onclick="() => ChangeFilter(f)">
+                    @f
+                </button>
+            }
+        </div>
+
+        <nav aria-label="Page">
+            <span>Current page: <strong>@pageNumber</strong></span>
+            <button class="btn btn-sm btn-outline-secondary ms-2" disabled="@(page <= 1)" @onclick="PrevPage">‹</button>
+            <button class="btn btn-sm btn-outline-secondary" disabled="@(page >= MaxPage)" @onclick="NextPage">›</button>
+        </nav>
+
+        <table class="table mt-3">
+            <thead>
+                <tr>
+                    <th>Contact</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var c in PagedContacts())
+                {
+                    <tr>
+                        <td>Contact @c</td>
+                        <td>@(c % 3 == 0 ? "inactive" : "active")</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+        <p class="text-muted">A URL reflecte o estado: <code>@_nav.Uri</code> - recarregar/ligar directamente a esta URL
+            restaura a mesma vista.</p>
+        </div>
+
+@code {
+    // Injetado para ler (e escrever) a query string - o equivalente do estado por URL.
+    [Microsoft.AspNetCore.Components.Inject]
+    private Microsoft.AspNetCore.Components.NavigationManager Nav { get; set; } =
+null!;
+
+    private Microsoft.AspNetCore.Components.NavigationManager _nav => Nav;
+
+    private const int PerPage = 4;
+    private const int MaxPage = 3;
+
+    private string filter = "all";
+    private int page = 1;
+
+    // Alias for the render - avoids the name clash of `page` with the @@page directive
+    // em texto do markup.
+    private int pageNumber => page;
+
+    // The URL is the source: read filter/page on entry (what the original corpus does not do).
+    protected override void OnInitialized()
+    {
+        ReadFromUrl();
+        Nav.LocationChanged += (_, _) => ReadFromUrl();
+    }
+
+    private void ReadFromUrl()
+    {
+        var uri = new Uri(Nav.Uri);
+        var q = Microsoft.AspNetCore.WebUtilities.QueryHelpers.ParseQuery(uri.Query);
+        filter = q.TryGetValue("filter", out var f) ? f.ToString() : "all";
+        page = q.TryGetValue("page", out var p) && int.TryParse(p, out var n) ? n : 1;
+        if (page < 1) page = 1;
+        if (page > MaxPage) page = MaxPage;
+    }
+
+    private IEnumerable<int> PagedContacts()
+    {
+        IEnumerable<int> contacts = Enumerable.Range(1, 12);
+        contacts = filter switch
+        {
+            "active" => contacts.Where(c => c % 3 != 0),
+            "inactive" => contacts.Where(c => c % 3 == 0),
+            _ => contacts,
+        };
+        return contacts.Skip((page - 1) * PerPage).Take(PerPage);
+    }
+
+    // Every interaction writes the URL - the deep link is maintained, not only on first load.
+    private void ChangeFilter(string f) => NavigateWith(f, 1);
+
+    private void PrevPage() => NavigateWith(filter, page - 1);
+
+    private void NextPage() => NavigateWith(filter, page + 1);
+
+    private void NavigateWith(string f, int p) => Nav.NavigateTo($"/deeplink-state?filter={f}&page={p}");
+}

@@ -1,0 +1,11 @@
+/*
+   CSS styling examples for the Vaadin app.
+
+   Visit https://vaadin.com/docs/styling/application-theme/ for more information.
+*/
+
+/* Example: CSS class name to center align the content . */
+.centered-content {
+  margin: 0 auto;
+  max-width: 250px;
+}

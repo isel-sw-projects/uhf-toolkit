@@ -1,0 +1,59 @@
+@page "/lazy-tabs"
+@rendermode InteractiveServer
+
+<PageTitle>Lazy Tabs</PageTitle>
+
+<h1>Lazy Tabs</h1>
+
+<p>Trace of the <em>lazy-tabs</em> example from <code>HtmlFlow-Datastar-Examples</code>.
+    No BRHC, cada tab faz <code>data-on:click="@@get('/lazy-tabs/{n}')"</code> - o servidor devolve
+    the content fragment on demand. Here each tab's content is rendered conditionally
+    from local state; the "lazy load" is the first render of the conditional block.
+    <strong>Teaching note:</strong> in Blazor no fragments travel on the wire - what travels is
+    o diff da render tree depois do estado mudar no servidor.
+</p>
+
+<div class="demo-box">
+    <ul class="nav nav-tabs">
+        @for (int i = 1; i <= 3; i++)
+        {
+            var n = i;
+            <li class="nav-item">
+                <button class="nav-link @(activeTab == n ? "active" : "")" @onclick="() => ActivateTab(n)">
+                    Tab @n
+                </button>
+            </li>
+        }
+    </ul>
+
+    <div class="border border-top-0 p-3">
+        @if (activeTab is null)
+        {
+            <em class="text-muted">Pick a tab to load its content</em>
+        }
+        else if (loadingTab)
+        {
+            <em>Loading</em>
+        }
+        else
+        {
+            <p>Tab @activeTab content - generated on the server when the tab is activated.</p>
+        }
+    </div>
+</div>
+
+@code {
+    private int? activeTab;
+    private bool loadingTab;
+
+    // Equivalent to data-on:click="@@get('/lazy-tabs/{n}')": only the active tab has content.
+    private async Task ActivateTab(int n)
+    {
+        activeTab = n;
+        loadingTab = true;
+        // A short latency makes the "loading" visible - in BRHC it is
+        // o tempo do fragmento a viajar no SSE.
+        await Task.Delay(300);
+        loadingTab = false;
+    }
+}

@@ -1,0 +1,55 @@
+@page "/large-list"
+@rendermode InteractiveServer
+
+<PageTitle>Large List - Keyed Morph</PageTitle>
+
+<h1>Large List (500 keyed rows)</h1>
+
+<p>Trace of the <em>large-list</em> example (keyed morph): 500 linhas com chaves
+    (<code>row-N</code>); the reorder resends the same rows in a different order and, with keys, only the
+    moved nodes change position instead of re-rendering the whole table. In BRHC the keys
+    are the <code>id</code>s on each <code>&lt;tr&gt;</code> and the morph happens on the
+    <code>patch-elements</code>; aqui re-renderizo a lista em C# e o Blazor reconciliation
+    compares the render tree - with <code>@@key</code>, it preserves the nodes (the keyed-morph analogue).
+    <strong>Teaching note:</strong> it is the most direct comparison: two keyed diffs, one data model.
+    um por atributos no documento (Datastar), outro pela render tree (Blazor).
+</p>
+
+<div class="demo-box">
+    <div class="border rounded p-2" style="max-height: 24em; overflow-y: auto;">
+        <table class="table table-sm table-hover">
+            <tbody>
+                @foreach (var row in rows)
+                {
+                    <tr @key="row.Id">
+                        <td class="text-end" style="width: 6em;">@row.Id</td>
+                        <td>@row.Label</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    <button class="btn btn-primary mt-3" @onclick="Reorder" disabled="@reordering">
+        @(reordering ? "reordenando…" : "Reorder")
+    </button>
+</div>
+
+@code {
+    // 500 rows with stable keys - the property the keyed morph relies on.
+    private sealed record Row(int Id, string Label);
+
+    private List<Row> rows = Enumerable.Range(1, 500).Select(i => new Row(i, $"Row {i}")).ToList();
+    private bool reordering;
+
+    // Equivalent to the Kotlin GET /large-list/reorder: same list, reverse order;
+    // with @@key Blazor moves the existing <tr> nodes (it does not recreate 500 nodes).
+    private async Task Reorder()
+    {
+        reordering = true;
+        StateHasChanged();
+        await Task.Delay(50); // deixe o badge mostrar o estado pendente
+        rows = rows.OrderByDescending(r => r.Id).ToList();
+        reordering = false;
+        StateHasChanged();
+    }
+}
