@@ -1,0 +1,68 @@
+@page "/click-to-edit-signals"
+@rendermode InteractiveServer
+
+<PageTitle>Click to Edit (Signals)</PageTitle>
+
+<h1>Click to Edit (Signals)</h1>
+
+<p>Trace of the <em>click-to-edit-signals</em> variant of <code>HtmlFlow-Datastar-Examples</code>.
+    In BRHC this variant uses local <em>signals</em> (<code>data-signals</code>, <code>data-bind</code>,
+    <code>data-text</code>) to synchronise the form without swapping fragments; here the Blazor
+    equivalent is component state - the component's own reactivity replaces the signals.
+    <strong>Teaching note:</strong> in Blazor the distinction between the "fragments" variant and the
+    "signals" variant collapses: both cases are "C# state + re-render" - there is no separate
+    separado para tipar.
+</p>
+
+<div class="demo-box">
+    @if (!editing)
+    {
+        <div>
+            <h2>@firstName @lastName</h2>
+            @* Fills the edit fields with the current state; without this the Submit
+               gravaria os inputs vazios e apagaria o nome. *@
+            <button class="btn btn-primary" @onclick="StartEdit">Edit</button>
+        </div>
+    }
+    else
+    {
+        <div>
+            <div class="mb-2">
+                <label class="form-label">First Name
+                    <input class="form-control" @bind="editFirstName" />
+                </label>
+            </div>
+            <div class="mb-2">
+                <label class="form-label">Last Name
+                    <input class="form-control" @bind="editLastName" />
+                </label>
+            </div>
+            <button class="btn btn-primary" @onclick="Save">Submit</button>
+            <button class="btn btn-secondary" @onclick="Cancel">Cancel</button>
+        </div>
+    }
+</div>
+
+@code {
+    // Fonte de verdade no servidor: o perfil vive em C# (cf. MutableStateFlow no Ktor).
+    private string firstName = "John";
+    private string lastName = "Doe";
+
+    private bool editing;
+    private string editFirstName = "";
+    private string editLastName = "";
+
+    // In BRHC: data-on:click="$_editing=true" + @@get('/click-to-edit/{i}') returns the form fragment.
+    // Aqui: o bool C# comuta o render, sem round-trip (o estado vive no circuito).
+    private void StartEdit() { editing = true; editFirstName = firstName; editLastName = lastName; }
+
+    private void Save()
+    {
+        // Equivalent to BRHC's @put: updates the authoritative state and leaves edit mode.
+        firstName = editFirstName;
+        lastName = editLastName;
+        editing = false;
+    }
+
+    private void Cancel() => editing = false;
+}

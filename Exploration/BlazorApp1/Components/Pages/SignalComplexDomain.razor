@@ -1,0 +1,51 @@
+@page "/signal-complex-domain"
+@rendermode InteractiveServer
+
+<PageTitle>Signal Complex Domain</PageTitle>
+
+<h1>Signal Complex Domain</h1>
+
+<p>Trace of the <em>signal-complex-domain</em> example from <code>HtmlFlow-Datastar-Examples</code>.
+    In BRHC, nested signals (<code>data-signals={person:{name,age}}</code>, <code>$person.name</code>)
+    express a composite domain and the buttons issue <code>@@put</code> to mutate server state.
+    Here the nested object is a C# <code>record</code> - static typing replaces the signal
+    path. <strong>Teaching note:</strong> the UHF seeks to give this nested object a static type
+    on the server; in Blazor that already exists out of the box, but <em>it is not hypermedia</em> - there
+    are no declarative attributes in the HTML; everything is imperative code in the component.</p>
+
+    <div class="demo-box">
+        <dl class="row">
+            <dt class="col-sm-3">Name</dt>
+            <dd class="col-sm-9">@person.Name</dd>
+            <dt class="col-sm-3">Age</dt>
+            <dd class="col-sm-9">@person.Age</dd>
+        </dl>
+
+        <button class="btn btn-primary" @onclick="IncreaseAge">Increase Age</button>
+        <button class="btn btn-secondary" @onclick="SwitchUser">Switch User</button>
+    </div>
+
+@code {
+    // Nested object equivalent to BRHC's {person:{name,age}} signal.
+    private sealed record Person(string Name, int Age);
+
+    private Person person = new("John", 30);
+
+    private static readonly Person[] Users =
+    [
+        new("John", 30),
+        new("Jane", 25),
+    ];
+
+    private int userIndex;
+
+    // Equivale ao @@put('/signal-complex-domain/increase-age').
+    private void IncreaseAge() => person = person with { Age = person.Age + 1 };
+
+    // Equivale ao @put('/signal-complex-domain/switch-user').
+    private void SwitchUser()
+    {
+        userIndex = (userIndex + 1) % Users.Length;
+        person = Users[userIndex];
+    }
+}

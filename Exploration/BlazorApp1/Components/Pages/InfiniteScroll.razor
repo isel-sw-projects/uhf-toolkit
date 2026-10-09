@@ -1,0 +1,83 @@
+@page "/infinite-scroll"
+@rendermode InteractiveServer
+
+@inject IJSRuntime JS
+
+<PageTitle>Infinite Scroll</PageTitle>
+
+<h1>Infinite Scroll</h1>
+
+<p>Trace of the <em>infinite-scroll</em> example from <code>HtmlFlow-Datastar-Examples</code>.
+    No BRHC, um <code>data-on-intersect="@@get('/infinite-scroll/more')"</code> num sentinela no fim
+    da lista dispara a busca de mais itens quando entra no viewport - o servidor devolve as linhas
+    ones. Here an <code>IntersectionObserver</code> (via JS interop) calls the C# method
+    <code>LoadMore</code>; the offset lives in component state. <strong>Teaching note:</strong>
+    this is the example where Blazor comes closest to "writing JS by hand" - the intersection
+    observer has no declarative analogue, unlike the Datastar attribute.
+</p>
+
+<div class="demo-box">
+    <ul class="list-group" id="scroll-list">
+        @foreach (var agent in agents)
+        {
+            <li class="list-group-item">@agent</li>
+        }
+    </ul>
+
+    @if (loading)
+    {
+        <div class="text-center my-2"><em>Loading more</em></div>
+    }
+    @if (!hasMore)
+    {
+        <p class="text-muted text-center my-2">End of the list.</p>
+    }
+    <div @ref="sentinel" style="height: 1px;"></div>
+</div>
+
+@code {
+    private const int Limit = 5;
+    private int offset = Limit;
+    private bool hasMore = true;
+    private bool loading;
+
+    // First page already present in the initial HTML (as in BRHC, which delivers
+    // the full list on the first GET and only defers the following ones).
+    private List<string> agents = Generate(0, Limit).ToList();
+    private ElementReference sentinel;
+    private DotNetObjectReference<InfiniteScroll>? objRef;
+
+    private static IEnumerable<string> Generate(int o, int n) =>
+        Enumerable.Range(o, n).Select(i => $"Agent {i:000}");
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            objRef = DotNetObjectReference.Create(this);
+            await JS.InvokeVoidAsync("brhcInterop.observeSentinel", sentinel, objRef);
+        }
+    }
+
+    // Called by the IntersectionObserver (sentinel) - analogous to BRHC's @@get('/more').
+    private async Task LoadMore()
+    {
+        if (loading || !hasMore) return;
+        loading = true;
+        StateHasChanged();
+
+        await Task.Delay(400); // simulated round-trip latency
+        var batch = Generate(offset, Limit).ToList();
+        agents.AddRange(batch);
+        offset += Limit;
+        hasMore = offset < 30;
+
+        loading = false;
+        StateHasChanged();
+    }
+
+    [JSInvokable]
+    public Task OnSentinelVisible() => LoadMore();
+
+    public void Dispose() => objRef?.Dispose();
+}

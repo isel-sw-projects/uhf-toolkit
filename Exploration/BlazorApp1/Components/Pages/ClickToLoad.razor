@@ -1,0 +1,74 @@
+@page "/click-to-load"
+@rendermode InteractiveServer
+
+<PageTitle>Click to Load</PageTitle>
+
+<h1>Click to Load</h1>
+
+<p>Trace of the <em>Click to Load</em> example from <code>HtmlFlow-Datastar-Examples</code>, reimplemented in Blazor
+    Server. No BRHC o "Load More" envia <code>?datastar={"offset":0,"limit":5}</code> e o servidor devolve um
+    <code>patch-signals</code> + <code>patch-elements</code> (append) over SSE. Here <code>offset</code> is a
+    C# variable on the server and SignalR delivers the append.</p>
+
+<div class="demo-box">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>ID</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var agent in agents)
+            {
+                <tr>
+                    <td>@agent.Name</td>
+                    <td>@agent.Email</td>
+                    <td>@agent.Id</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <button class="btn btn-info" disabled="@isLoading" @onclick="LoadMore">
+        @(isLoading ? "Loading..." : "Load More")
+    </button>
+</div>
+
+@code {
+    private const int Limit = 5;
+    private readonly List<Agent> agents = [];
+    private int offset;
+    private bool isLoading;
+
+    private async Task LoadMore()
+    {
+        if (isLoading)
+        {
+            return;
+        }
+
+        isLoading = true;
+
+        // Simula o atraso do handler /click-to-load/more (Thread.sleep(1000) no BRHC)
+        await Task.Delay(1000);
+
+        agents.AddRange(NewAgents(offset, offset + Limit));
+        offset += Limit; // equivale ao sendPatchSignals("{offset: ...}")
+
+        isLoading = false;
+    }
+
+    // identical to BRHC's fun newAgents
+    private static IEnumerable<Agent> NewAgents(int from, int to)
+    {
+        for (var i = from; i < to; i++)
+        {
+            var uuid = string.Concat(Enumerable.Range(0, 8).Select(_ => (Random.Shared.Next(0, 256)).ToString("x2")));
+            yield return new Agent($"Agent Smith {i}", $"void{i}@null.org", uuid);
+        }
+    }
+
+    private sealed record Agent(string Name, string Email, string Id);
+}

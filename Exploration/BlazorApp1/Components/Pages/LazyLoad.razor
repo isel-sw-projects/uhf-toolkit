@@ -1,0 +1,42 @@
+@page "/lazy-load"
+@rendermode InteractiveServer
+
+<PageTitle>Lazy Load</PageTitle>
+
+<h1>Lazy Load</h1>
+
+<p>Trace of the <em>lazy-load</em> example from <code>HtmlFlow-Datastar-Examples</code>.
+    In BRHC, deferred content arrives over SSE (<code>data-init="@@get('/lazy-load/graph')"</code>) -
+    the server waits 2 seconds and emits <code>patchElements</code> with the image/chart. Here the
+    content is loaded in the component's <code>OnInitializedAsync</code> with an equivalent delay.
+    <strong>Teaching note:</strong> BRHC's "lazy" is the server pushing later; Blazor's "lazy" is the
+    component lifecycle completing later - the transport is invisible.
+</p>
+
+<div class="demo-box">
+    @if (!loaded)
+    {
+        <div class="d-flex align-items-center gap-2">
+            <div class="spinner-border spinner-border-sm" role="status"></div>
+            <em>Loading deferred content (2s)</em>
+        </div>
+    }
+    else
+    {
+        <div class="p-4 border rounded bg-light text-center">
+            <strong>Heavy content loaded</strong>
+            <p class="mb-0 text-muted">(no BRHC este bloco chegou via patchElements no SSE)</p>
+        </div>
+    }
+</div>
+
+@code {
+    private bool loaded;
+
+    // Equivalent to data-init @@get('/lazy-load/graph') + patchElements after 2s on the server.
+    protected override async Task OnInitializedAsync()
+    {
+        await Task.Delay(2000);
+        loaded = true;
+    }
+}

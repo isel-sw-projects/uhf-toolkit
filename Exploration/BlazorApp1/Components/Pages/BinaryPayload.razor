@@ -1,0 +1,48 @@
+@page "/binary-payload"
+@rendermode InteractiveServer
+
+<PageTitle>Binary Payload</PageTitle>
+
+<h1>Binary-Native Payload</h1>
+
+<p>Trace of the <em>binary-payload</em> example: bytes in the POST body, not base64 inside
+    signals - the case where the Datastar signal channel gets strained (the <em>file-upload</em>
+    serialises files into base64) and Blazor solves it with native streaming
+    (<code>IBrowserFile</code>). Here the report (size + SHA-256 digest) fills the box below.
+    <strong>Teaching note:</strong> in both models the bytes do not cross the state channel;
+    the difference is the envelope - the Datastar POST returns a patch-elements, the C#
+    Blazor just changes component state.</p>
+
+    <div class="demo-box">
+        <InputFile OnChange="OnFileSelected" class="form-control" />
+
+        <div id="binary-report" class="mt-3">
+            @if (reportHtml is not null)
+            {
+                @((MarkupString)reportHtml)
+            }
+        </div>
+    </div>
+
+@code {
+    private string? reportHtml;
+
+    // Equivalent to the /binary-payload/echo POST: bytes received in the body (native stream,
+    // without base64) and a report with size + SHA-256 - the same as the Kotlin example.
+    private async Task OnFileSelected(InputFileChangeEventArgs e)
+    {
+        var file = e.File;
+
+        await using var stream = file.OpenReadStream(maxAllowedSize: 8 * 1024 * 1024);
+        using var ms = new MemoryStream();
+        await stream.CopyToAsync(ms);
+        var bytes = ms.ToArray();
+
+        var digest = System.Security.Cryptography.SHA256.HashData(bytes);
+        var digestHex = Convert.ToHexString(digest).ToLowerInvariant();
+
+        reportHtml =
+            $"<div>bytes received: <strong>{bytes.Length}</strong></div>" +
+            $"<div>sha256: <code>{digestHex}</code></div>";
+    }
+}

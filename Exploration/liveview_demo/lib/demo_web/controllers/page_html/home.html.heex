@@ -1,0 +1,58 @@
+<Layouts.flash_group flash={@flash} />
+<div class="px-4 py-10 sm:px-6 sm:py-28 lg:px-8 xl:px-28 xl:py-32">
+  <div class="mx-auto max-w-3xl lg:mx-0">
+    <div class="mt-10 flex justify-between items-center">
+      <h1 class="flex items-center text-sm font-semibold leading-6">
+        BRHC - Trace of the 18 examples
+        <small class="badge badge-warning badge-sm ml-3">
+          LiveView
+        </small>
+      </h1>
+      <Layouts.theme_toggle />
+    </div>
+
+    <p class="text-[2rem] mt-4 font-semibold leading-10 tracking-tighter text-balance">
+      18 interactive examples in Phoenix LiveView
+    </p>
+    <p class="mt-4 leading-7 text-base-content/70">
+      Trace of the HtmlFlow-Datastar-Examples patterns implemented in
+      Phoenix LiveView. Each route is an independent implementation of the
+      corresponding pattern.
+    </p>
+
+    <div class="mt-10 grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
+      <.example_link path="/counter" title="Counter" description="Simple counter with server-side events." />
+      <.example_link path="/counter-signals" title="Counter (signals)" description="Counter variant with signals." />
+      <.example_link path="/click-to-edit" title="Click to Edit" description="Toggle between the view and inline editing." />
+      <.example_link path="/click-to-edit-signals" title="Click to Edit (signals)" description="Inline-editing variant with signals." />
+      <.example_link path="/click-to-load" title="Click to Load" description="Load additional rows on demand." />
+      <.example_link path="/active-search" title="Active Search" description="Search with reactive results." />
+      <.example_link path="/bulk-update" title="Bulk Update" description="Bulk update of selected rows." />
+      <.example_link path="/delete-row" title="Delete Row" description="Row removal with confirmation." />
+      <.example_link path="/edit-row" title="Edit Row" description="Editing a row in a table." />
+      <.example_link path="/file-upload" title="File Upload" description="File upload with progress." />
+      <.example_link path="/infinite-scroll" title="Infinite Scroll" description="Infinite scroll with additional pages." />
+      <.example_link path="/inline-validation" title="Inline Validation" description="Form validation field by field." />
+      <.example_link path="/lazy-load" title="Lazy Load" description="Content loaded on demand." />
+      <.example_link path="/lazy-tabs" title="Lazy Tabs" description="Tabs whose content loads only when activated." />
+      <.example_link path="/progress-bar" title="Progress Bar" description="Server-driven progress bar." />
+      <.example_link path="/progressive-load" title="Progressive Load" description="Progressive content loading." />
+      <.example_link path="/signal-complex-domain" title="Signal Complex Domain" description="Signals over a more complex domain." />
+      <.example_link path="/todo-mvc" title="TodoMVC" description="Full TodoMVC with server-side state." />
+    </div>
+
+    <h2 class="mt-10 font-semibold text-base">Additional examples (exploration)</h2>
+    <p class="mt-2 leading-7 text-base-content/70">
+      The six behaviours the original corpus does not exercise - the same six in Kotlin,
+      Blazor e Vaadin.
+    </p>
+    <div class="mt-6 grid grid-cols-1 gap-x-6 gap-y-3 sm:grid-cols-2">
+      <.example_link path="/optimistic-actions" title="Optimistic Actions" description="Optimistic action with visible rollback (Item 3 always fails)." />
+      <.example_link path="/multi-client-counter" title="Multi-Client Counter" description="One shared value, N synchronised clients." />
+      <.example_link path="/deeplink-state" title="Deep-Link State" description="State (filter/page) read from the URL and restored by deep link." />
+      <.example_link path="/streaming-input" title="Streaming Input" description="Chunk stream with the input active in parallel." />
+      <.example_link path="/large-list" title="Large List" description="500 rows with keys + reorder (keyed morph)." />
+      <.example_link path="/binary-payload" title="Binary Payload" description="Bytes in the POST body + SHA-256 digest (no base64)." />
+    </div>
+  </div>
+</div>

@@ -1,0 +1,88 @@
+@page "/multi-client-counter"
+@rendermode InteractiveServer
+
+<PageTitle>Multi-Client Counter</PageTitle>
+
+<h1>Multi-Client Counter</h1>
+
+<p>Trace of the <em>multi-client-counter</em> example. In BRHC the shared counter is a
+    <code>MutableStateFlow</code> e cada cliente ligado ao <code>/events</code> recebe o mesmo
+    patch - opening two windows shows both synchronising. Here the SignalR circuit is the channel:
+    a C# service notifies registered components (the server-side <em>observable</em> pattern)
+    and each diff reaches every active circuit. <strong>Teaching note:</strong> in Blazor the
+    transport already broadcasts per circuit; shared state calls for a singleton service -
+    o papel que o signal + rota SSE ocupa no BRHC.
+</p>
+
+<div class="demo-box">
+    <p class="fs-3">Shared value: <strong>@sharedValue</strong></p>
+    <button class="btn btn-primary" @onclick="Increment">Increment (all clients)</button>
+    <p class="text-muted mt-2">Open a second window at <code>/multi-client-counter</code> - the values synchronise.
+    </p>
+</div>
+
+@code {
+    // Service shared by all circuits (injected as singleton via
+    // a static field for simplicity in this trace - the C# equivalent of the bus).
+    private static readonly SharedCounterService Shared = new();
+    private int sharedValue;
+    private Action? unsubscribe;
+
+    protected override void OnInitialized()
+    {
+        // Equivalent to data-init @@get('/multi-client-counter/events'): subscribe
+        // a stream do valor comum logo na montagem do componente.
+        unsubscribe = Shared.Subscribe(v =>
+        {
+            sharedValue = v;
+            InvokeAsync(StateHasChanged);
+        });
+        sharedValue = Shared.Value;
+    }
+
+    private void Increment() => Shared.Increment();
+
+    public void Dispose()
+    {
+        unsubscribe?.Invoke();
+        GC.SuppressFinalize(this);
+    }
+
+    /// <summary>The singleton holding the shared state and the broadcast (the "bus" of the Kotlin/Elixir examples).</summary>
+    private sealed class SharedCounterService
+    {
+        private readonly List<Action<int>> subscribers = new();
+        private int value;
+
+        public int Value => value;
+
+        public Action Subscribe(Action<int> subscriber)
+        {
+            lock (subscribers)
+            {
+                subscribers.Add(subscriber);
+            }
+            return () =>
+            {
+                lock (subscribers)
+                {
+                    subscribers.Remove(subscriber);
+                }
+            };
+        }
+
+        public void Increment()
+        {
+            value++;
+            Action<int>[] snapshot;
+            lock (subscribers)
+            {
+                snapshot = subscribers.ToArray();
+            }
+            foreach (var s in snapshot)
+            {
+                s(value);
+            }
+        }
+    }
+}

@@ -1,0 +1,99 @@
+@page "/edit-row"
+@rendermode InteractiveServer
+
+<PageTitle>Edit Row</PageTitle>
+
+<h1>Edit Row</h1>
+
+<p>Trace of the <em>Edit Row</em> example from <code>HtmlFlow-Datastar-Examples</code>. No BRHC editar uma linha envia
+    <code>@@get('/edit-row/{index}')</code> (o servidor faz <code>patch-signals</code> + <code>patch-elements</code> para
+    replacing the row with an editing one) and Save issues <code>PATCH</code>. Here the row being edited is C# state on the server.</p>
+
+<div class="demo-box">
+    <table class="table">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Email</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @for (var i = 0; i < users.Count; i++)
+            {
+                var rowIndex = i;
+                <tr>
+                    @if (editingIndex == i)
+                    {
+                        <td><input type="text" @bind="editName" @bind:event="oninput" /></td>
+                        <td><input type="text" @bind="editEmail" @bind:event="oninput" /></td>
+                        <td>
+                            <button class="btn btn-success btn-sm" @onclick="Save">Save</button>
+                            <button class="btn btn-secondary btn-sm" @onclick="Cancel">Cancel</button>
+                        </td>
+                    }
+                    else
+                    {
+                        <td>@users[i].Name</td>
+                        <td>@users[i].Email</td>
+                        <td>
+                            <button class="btn btn-primary btn-sm" @onclick="() => EnterEdit(rowIndex)">Edit</button>
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+
+    <button class="btn btn-warning" @onclick="Reset">Reset</button>
+</div>
+
+@code {
+    private readonly List<User> users =
+    [
+        new(0, "Joe Smith", "joe@smith.org"),
+        new(1, "Angie MacDowell", "angie@macdowell.org"),
+        new(2, "Fuqua Tarkenton", "fuqua@tarkenton.org"),
+        new(3, "Kim Yee", "kim@yee.org"),
+    ];
+
+    private int? editingIndex;
+    private string editName = "";
+    private string editEmail = "";
+
+    private void EnterEdit(int index)
+    {
+        editingIndex = index;
+        editName = users[index].Name;
+        editEmail = users[index].Email;
+    }
+
+    private void Save()
+    {
+        if (editingIndex is int i)
+        {
+            // equivale ao PATCH /edit-row/{index} com o corpo {"idx":..,"name":..,"email":..}
+            users[i] = users[i] with { Name = editName, Email = editEmail };
+        }
+        editingIndex = null;
+    }
+
+    private void Cancel()
+    {
+        // equivale ao GET /edit-row/cancel
+        editingIndex = null;
+    }
+
+    private void Reset()
+    {
+        // equivale ao PUT /edit-row/reset
+        users.Clear();
+        users.Add(new(0, "Joe Smith", "joe@smith.org"));
+        users.Add(new(1, "Angie MacDowell", "angie@macdowell.org"));
+        users.Add(new(2, "Fuqua Tarkenton", "fuqua@tarkenton.org"));
+        users.Add(new(3, "Kim Yee", "kim@yee.org"));
+        editingIndex = null;
+    }
+
+    private sealed record User(int Idx, string Name, string Email);
+}

@@ -1,0 +1,164 @@
+﻿<div class="top-row ps-3 navbar navbar-dark">
+    <div class="container-fluid">
+        <a class="navbar-brand" href="">BlazorApp1</a>
+    </div>
+</div>
+
+<input type="checkbox" title="Navigation menu" class="navbar-toggler" />
+
+<div class="nav-scrollable" onclick="document.querySelector('.navbar-toggler').click()">
+    <nav class="nav flex-column">
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="" Match="NavLinkMatch.All">
+                <span class="bi bi-house-door-fill-nav-menu" aria-hidden="true"></span> Home
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="counter">
+                <span class="bi bi-plus-square-fill-nav-menu" aria-hidden="true"></span> Counter
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="active-search">
+                <span class="bi bi-search-nav-menu" aria-hidden="true"></span> Active Search (BRHC)
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="click-to-load">
+                <span class="bi bi-arrow-down-circle-fill-nav-menu" aria-hidden="true"></span> Click to Load
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="bulk-update">
+                <span class="bi bi-check-all-nav-menu" aria-hidden="true"></span> Bulk Update
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="click-to-edit">
+                <span class="bi bi-pencil-square-nav-menu" aria-hidden="true"></span> Click to Edit
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="delete-row">
+                <span class="bi bi-trash-nav-menu" aria-hidden="true"></span> Delete Row
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="edit-row">
+                <span class="bi bi-pencil-nav-menu" aria-hidden="true"></span> Edit Row
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="inline-validation">
+                <span class="bi bi-check-circle-nav-menu" aria-hidden="true"></span> Inline Validation
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="todo-mvc">
+                <span class="bi bi-list-check-nav-menu" aria-hidden="true"></span> TodoMVC
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="click-to-edit-signals">
+                <span class="bi bi-pencil-fill-nav-menu" aria-hidden="true"></span> Click to Edit (Signals)
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="counter-signals">
+                <span class="bi bi-plus-slash-minus-nav-menu" aria-hidden="true"></span> Counter (Signals)
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="signal-complex-domain">
+                <span class="bi bi-diagram-3-fill-nav-menu" aria-hidden="true"></span> Signal Complex Domain
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="lazy-tabs">
+                <span class="bi bi-window-stack-nav-menu" aria-hidden="true"></span> Lazy Tabs
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="lazy-load">
+                <span class="bi bi-cloud-slash-fill-nav-menu" aria-hidden="true"></span> Lazy Load
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="progress-bar">
+                <span class="bi bi-bar-chart-fill-nav-menu" aria-hidden="true"></span> Progress Bar
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="progressive-load">
+                <span class="bi bi-collection-fill-nav-menu" aria-hidden="true"></span> Progressive Load
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="infinite-scroll">
+                <span class="bi bi-arrow-down-up-nav-menu" aria-hidden="true"></span> Infinite Scroll
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="file-upload">
+                <span class="bi bi-file-earmark-arrow-up-fill-nav-menu" aria-hidden="true"></span> File Upload
+            </NavLink>
+        </div>
+
+        <div class="nav-header px-3 py-2 text-uppercase small text-muted">Additional examples</div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="optimistic-actions">
+                <span class="bi bi-arrow-repeat-nav-menu" aria-hidden="true"></span> Optimistic Actions
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="multi-client-counter">
+                <span class="bi bi-people-fill-nav-menu" aria-hidden="true"></span> Multi-Client Counter
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="deeplink-state">
+                <span class="bi bi-link-45deg-nav-menu" aria-hidden="true"></span> Deep-Link State
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="streaming-input">
+                <span class="bi bi-broadcast-pin-nav-menu" aria-hidden="true"></span> Streaming Input
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="large-list">
+                <span class="bi bi-list-ol-nav-menu" aria-hidden="true"></span> Large List (Keyed)
+            </NavLink>
+        </div>
+
+        <div class="nav-item px-3">
+            <NavLink class="nav-link" href="binary-payload">
+                <span class="bi bi-file-binary-fill-nav-menu" aria-hidden="true"></span> Binary Payload
+            </NavLink>
+        </div>
+    </nav>
+</div>
+

@@ -1,0 +1,21 @@
+﻿@page "/counter"
+@rendermode InteractiveServer
+
+<PageTitle>Counter</PageTitle>
+
+<h1>Counter</h1>
+
+<p>Trace of the <em>counter</em> example from <code>HtmlFlow-Datastar-Examples</code>.
+In BRHC the counter is a <code>MutableStateFlow&lt;Int&gt;</code> on the server arriving over SSE
+(<code>data-init @@get('/counter/events')</code>); here it is a C# field in the circuit and SignalR
+delivers the render-tree diff on every click.</p>
+
+<div class="demo-box">
+    <p class="fs-3">Current count: <strong>@currentCount</strong></p>
+    <button class="btn btn-primary" @onclick="() => currentCount++">Increment</button>
+    <button class="btn btn-secondary" @onclick="() => currentCount--">Decrement</button>
+</div>
+
+@code {
+    private int currentCount;
+}

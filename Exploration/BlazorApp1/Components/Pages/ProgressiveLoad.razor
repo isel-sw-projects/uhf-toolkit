@@ -1,0 +1,76 @@
+@page "/progressive-load"
+@rendermode InteractiveServer
+
+<PageTitle>Progressive Load</PageTitle>
+
+<h1>Progressive Load</h1>
+
+<p>Trace of the <em>progressive-load</em> example from <code>HtmlFlow-Datastar-Examples</code>.
+    In BRHC, as the page loads the server sends sequential fragments over SSE
+    (header -> article -> comments -> footer), each arriving when ready. Here the
+    "Load" button triggers an async sequence that fills the sections with delays; the button
+    disables itself while loading (the <code>data-indicator</code> analogue).
+    <strong>Teaching note:</strong> BRHC delivers HTML in parts on the wire; Blazor delivers
+    diffs of an HTML that already "knows" the full layout.
+</p>
+
+<div class="demo-box">
+    <button class="btn btn-primary" @onclick="Load" disabled="@isLoading">
+        @(isLoading ? "Loading" : "Load content")
+    </button>
+
+    @if (header is not null)
+    {
+        <h2 class="mt-3">@header</h2>
+    }
+    @if (article is not null)
+    {
+        <p class="lead">@article</p>
+    }
+    @if (comments is not null)
+    {
+        <ul class="list-group">
+            @foreach (var c in comments)
+            {
+                <li class="list-group-item">@c</li>
+            }
+        </ul>
+    }
+    @if (footer is not null)
+    {
+        <p class="text-muted mt-3">@footer</p>
+    }
+</div>
+
+@code {
+    private bool isLoading;
+    private string? header;
+    private string? article;
+    private string[]? comments;
+    private string? footer;
+
+    // Cada passo equivale a um fragmento SSE do BRHC (patchElements sequenciais).
+    private async Task Load()
+    {
+        isLoading = true;
+        header = article = null;
+        comments = null;
+        footer = null;
+
+        await Task.Delay(400);
+        header = "Progressive Load";
+        StateHasChanged();
+
+        await Task.Delay(600);
+        article = "This article arrived in parts - in BRHC, each part is a patchElements on the SSE stream.";
+        StateHasChanged();
+
+        await Task.Delay(600);
+        comments = ["Comment 1", "Comment 2", "Comment 3"];
+        StateHasChanged();
+
+        await Task.Delay(300);
+        footer = "End of deferred content.";
+        isLoading = false;
+    }
+}

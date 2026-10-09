@@ -1,0 +1,52 @@
+@page "/progress-bar"
+@rendermode InteractiveServer
+
+<PageTitle>Progress Bar</PageTitle>
+
+<h1>Progress Bar</h1>
+
+<p>Trace of the <em>progress-bar</em> example from <code>HtmlFlow-Datastar-Examples</code>.
+    In BRHC, the progress bar is an SSE stream of <code>patchElements</code> - the server
+    pushes value updates up to 100%. Here the server (circuit) runs an async loop that
+    increments the value and forces a re-render with <code>StateHasChanged</code> - the transport is
+    SignalR, not a second channel. <strong>Teaching note:</strong> the "server pushes a sequence
+    of states" pattern exists in both stacks; the wire changes (patch SSE vs SignalR diffs).</p>
+
+    <div class="demo-box">
+        @if (running)
+        {
+            <div class="d-flex align-items-center gap-3">
+                <div class="progress flex-grow-1" style="height: 24px;">
+                    <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: @(progress)%">@progress%
+                    </div>
+                </div>
+            </div>
+        }
+        else
+        {
+            <button class="btn btn-primary" @onclick="Start" disabled="@running">Start</button>
+            @if (progress >= 100)
+            {
+                <span class="ms-2 ok">✔ Complete</span>
+            }
+        }
+    </div>
+
+@code {
+    private int progress;
+    private bool running;
+
+    // Equivalent to the /progress-bar/updates SSE stream: each iteration pushes a new value.
+    private async Task Start()
+    {
+        running = true;
+        progress = 0;
+        while (progress < 100)
+        {
+            await Task.Delay(100);
+            progress = Math.Min(progress + 5, 100);
+            StateHasChanged(); // in BRHC this is a patchElements on the SSE wire
+        }
+        running = false;
+    }
+}

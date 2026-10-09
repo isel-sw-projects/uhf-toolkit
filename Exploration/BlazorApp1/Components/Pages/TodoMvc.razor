@@ -1,0 +1,161 @@
+@page "/todo-mvc"
+@rendermode InteractiveServer
+
+<PageTitle>TodoMVC</PageTitle>
+
+<h1>TodoMVC</h1>
+
+<p>Trace of the <em>TodoMVC</em> example from <code>HtmlFlow-Datastar-Examples</code>. In BRHC every change is
+    pedidos HTTP que o servidor propaga por um <em>stream</em> SSE persistente (<code>patch-elements</code> do estado
+    full). Here the todo <em>state</em> is a C# object on the server and SignalR re-renders the app on every change.</p>
+
+<div class="demo-box">
+    <section id="todo-mvc">
+        <header id="todo-header">
+            <input type="checkbox" checked="@toggleAllChecked" @onchange="ToggleAll" />
+            <input id="new-todo" type="text" placeholder="What needs to be done?" @bind="newTodo" @bind:event="oninput"
+                   @onkeydown="OnNewTodoKey" />
+        </header>
+
+        <ul id="todo-list">
+            @foreach (var task in VisibleTasks)
+            {
+                <li role="button" tabindex="0" @ondblclick="() => EnterEdit(task.Id)">
+                    <input type="checkbox" checked="@(task.Status == Status.Done)" @onclick="() => Toggle(task.Id)" />
+                    @if (editingId == task.Id)
+                    {
+                        <input type="text" @bind="editTitle" @bind:event="oninput" @onkeydown="OnEditKey" />
+                    }
+                    else
+                    {
+                        <label>@task.Title</label>
+                    }
+                    <button class="error small" @onclick="() => Delete(task.Id)">✕</button>
+                </li>
+            }
+        </ul>
+
+        <div id="todo-actions">
+            <span><strong>@PendingCount()</strong> items pending</span>
+            <button class="info" @onclick="() => SetMode(Mode.All)">All</button>
+            <button class="small" @onclick="() => SetMode(Mode.Pending)">Pending</button>
+            <button class="small" @onclick="() => SetMode(Mode.Done)">Completed</button>
+            <button class="error small" @onclick="DeleteCompleted">Delete</button>
+            <button class="warning small" @onclick="Reset">Reset</button>
+        </div>
+    </section>
+</div>
+
+@code {
+    private readonly List<Task> tasks =
+    [
+        new(0, "Learn any backend language", Status.Pending),
+        new(1, "Learn Datastar", Status.Pending),
+        new(2, "Learn HTML Flow", Status.Pending),
+        new(3, "Profit", Status.Pending),
+    ];
+
+    private readonly List<Task> InitialTasks =
+    [
+        new(0, "Learn any backend language", Status.Pending),
+        new(1, "Learn Datastar", Status.Pending),
+        new(2, "Learn HTML Flow", Status.Pending),
+        new(3, "Profit", Status.Pending),
+    ];
+
+    private string newTodo = "";
+    private Mode mode = Mode.All;
+    private int? editingId;
+    private string editTitle = "";
+    private bool toggleAllChecked;
+
+    private int PendingCount() => tasks.Count(t => t.Status == Status.Pending);
+
+    private IEnumerable<Task> VisibleTasks =>
+        mode switch
+        {
+            Mode.Pending => tasks.Where(t => t.Status == Status.Pending),
+            Mode.Done => tasks.Where(t => t.Status == Status.Done),
+            _ => tasks,
+        };
+
+    private void OnNewTodoKey(KeyboardEventArgs e)
+    {
+        // equivale ao data-on:keydown="if (evt.key !== 'Enter' || !$input.trim()) return; @patch('/todo-mvc/-1')"
+        if (e.Key == "Enter" && !string.IsNullOrWhiteSpace(newTodo))
+        {
+            var newId = tasks.Count == 0 ? 0 : tasks.Max(t => t.Id) + 1;
+            tasks.Add(new Task(newId, newTodo.Trim(), Status.Pending));
+            newTodo = "";
+        }
+    }
+
+    private void OnEditKey(KeyboardEventArgs e)
+    {
+        // equivale ao PATCH /todo-mvc/{id} no Enter e ao PUT /todo-mvc/cancel no Escape
+        if (editingId is int id)
+        {
+            if (e.Key == "Enter")
+            {
+                var idx = tasks.FindIndex(t => t.Id == id);
+                if (idx >= 0)
+                {
+                    tasks[idx] = tasks[idx] with { Title = editTitle, Editing = false };
+                }
+                editingId = null;
+            }
+            else if (e.Key == "Escape")
+            {
+                editingId = null;
+            }
+        }
+    }
+
+    private void Toggle(int id)
+    {
+        var idx = tasks.FindIndex(t => t.Id == id);
+        if (idx >= 0)
+        {
+            tasks[idx] = tasks[idx] with { Status = tasks[idx].Status == Status.Done ? Status.Pending : Status.Done };
+        }
+    }
+
+    private void ToggleAll()
+    {
+        var allDone = tasks.All(t => t.Status == Status.Done);
+        for (var i = 0; i < tasks.Count; i++)
+        {
+            tasks[i] = tasks[i] with { Status = allDone ? Status.Pending : Status.Done };
+        }
+        toggleAllChecked = !allDone;
+    }
+
+    private void Delete(int id)
+    {
+        tasks.RemoveAll(t => t.Id == id);
+    }
+
+    private void DeleteCompleted() => tasks.RemoveAll(t => t.Status == Status.Done);
+
+    private void EnterEdit(int id)
+    {
+        editingId = id;
+        editTitle = tasks.First(t => t.Id == id).Title;
+    }
+
+    private void SetMode(Mode m) => mode = m;
+
+    private void Reset()
+    {
+        tasks.Clear();
+        tasks.AddRange(InitialTasks);
+        mode = Mode.All;
+        editingId = null;
+    }
+
+    private enum Status { Pending, Done }
+
+    private enum Mode { All, Pending, Done }
+
+    private sealed record Task(int Id, string Title, Status Status, bool Editing = false);
+}

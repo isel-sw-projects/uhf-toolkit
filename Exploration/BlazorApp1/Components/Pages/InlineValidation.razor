@@ -1,0 +1,66 @@
+@page "/inline-validation"
+@rendermode InteractiveServer
+
+<PageTitle>Inline Validation</PageTitle>
+
+<h1>Inline Validation</h1>
+
+<p>Trace of the <em>Inline Validation</em> example from <code>HtmlFlow-Datastar-Examples</code>. No BRHC cada tecla envia
+    <code>@@post('/inline-validation/validate')</code> com debounce e o servidor devolve <code>patch-elements</code>
+    (error fragments) + <code>patch-signals</code> (<code>_error</code>). Here validation runs in C# on the server,
+    com as mesmas regras: email deve ser <code>test@test.com</code>, nome/apelido com &ge; 2 caracteres.</p>
+
+<div class="demo-box">
+    <form @onsubmit="Submit">
+        <label>First Name
+            <input type="text" @bind="firstName" @bind:event="oninput" />
+        </label>
+        @if (ShowFirstNameError)
+        {
+            <p class="text-danger">First name must be at least 2 characters long.</p>
+        }
+
+        <label>Last Name
+            <input type="text" @bind="lastName" @bind:event="oninput" />
+        </label>
+        @if (ShowLastNameError)
+        {
+            <p class="text-danger">Last name must be at least 2 characters long.</p>
+        }
+
+        <label>Email
+            <input type="email" @bind="email" @bind:event="oninput" />
+        </label>
+        @if (ShowEmailError)
+        {
+            <p class="text-danger">Email must be test&#64;test.com to pass validation.</p>
+        }
+
+        <button type="submit" class="btn btn-primary">Submit</button>
+    </form>
+
+    @if (submitted)
+    {
+        <p class="text-success">Sign-up successful!</p>
+    }
+</div>
+
+@code {
+    private string firstName = "";
+    private string lastName = "";
+    private string email = "";
+    private bool submitted;
+
+    private bool ShowFirstNameError => firstName.Length >= 2 is false && firstName.Length > 0;
+    private bool ShowLastNameError => lastName.Length >= 2 is false && lastName.Length > 0;
+    private bool ShowEmailError => email != "test@test.com" && email.Length > 0;
+
+    // As regras replicam validateSignals do BRHC:
+    // isEmailValid = email == "test@test.com"; isFirstNameValid = firstName.Length >= 2; isLastNameValid = lastName.Length >= 2
+    private bool HasErrors => email != "test@test.com" || firstName.Length < 2 || lastName.Length < 2;
+
+    private void Submit()
+    {
+        submitted = !HasErrors;
+    }
+}
