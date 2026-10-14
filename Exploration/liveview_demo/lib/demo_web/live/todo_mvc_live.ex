@@ -74,7 +74,7 @@ defmodule DemoWeb.TodoMvcLive do
 
   def handle_event("add", %{"title" => title}, socket) do
     task = %Task{
-      id: Ecto.UUID.generate(),
+      id: System.unique_integer([:positive]) |> Integer.to_string(),
       title: String.trim(title),
       completed: false,
       editing: false
