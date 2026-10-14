@@ -45,10 +45,6 @@
                 <enabled>false</enabled>
             </snapshots>
         </repository>
-        <repository>
-            <id>apache snapshots</id>
-            <url>https://repository.apache.org/content/repositories/snapshots</url>
-        </repository>
     </repositories>
 
     <pluginRepositories>
@@ -108,23 +104,14 @@
             <artifactId>slf4j-simple</artifactId>
         </dependency>
 
-        <!-- Flow Viritin (Apache 2.0): o IntersectionObserver em Java puro é o
-             análogo do data-on-intersect do BRHC no exemplo infinite-scroll.
-             3.x é a série para Vaadin 25. -->
+        <!-- Flow Viritin (Apache 2.0): the IntersectionObserver implemented in
+             plain Java is the analogue of the BRHC data-on-intersect in the
+             infinite-scroll example, so this is the one non-core dependency the
+             demos need. 3.x is the series for Vaadin 25. -->
         <dependency>
             <groupId>in.virit</groupId>
             <artifactId>viritin</artifactId>
             <version>3.8.1</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.vaadin</groupId>
-            <artifactId>vaadin-testbench-junit6</artifactId>
-            <scope>test</scope>
-            <!-- Test-scoped dependencies are always considered "optional", but
-            their transitive dependencies may conflict with those from regular
-            optional dependencies if not explicitly marked as optional here. -->
-            <optional>true</optional>
         </dependency>
     </dependencies>
 
@@ -196,58 +183,6 @@
                 </dependency>
             </dependencies>
         </profile>
-        <profile>
-            <id>it</id>
-            <build>
-                <plugins>
-                    <plugin>
-                        <groupId>org.eclipse.jetty.ee10</groupId>
-                        <artifactId>jetty-ee10-maven-plugin</artifactId>
-                        <version>${jetty.version}</version>
-                        <configuration>
-                            <scan>0</scan>
-                            <stopPort>8081</stopPort>
-                            <stopWait>5</stopWait>
-                            <stopKey>${project.artifactId}</stopKey>
-                        </configuration>
-                        <executions>
-                            <execution>
-                                <id>start-jetty</id>
-                                <phase>pre-integration-test</phase>
-                                <goals>
-                                    <goal>start</goal>
-                                </goals>
-                            </execution>
-                            <execution>
-                                <id>stop-jetty</id>
-                                <phase>post-integration-test</phase>
-                                <goals>
-                                    <goal>stop</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                    </plugin>
 
-                    <!-- Runs the integration tests (*IT) after the server is started -->
-                    <plugin>
-                        <groupId>org.apache.maven.plugins</groupId>
-                        <artifactId>maven-failsafe-plugin</artifactId>
-                        <version>3.5.4</version>
-                        <executions>
-                            <execution>
-                                <goals>
-                                    <goal>integration-test</goal>
-                                    <goal>verify</goal>
-                                </goals>
-                            </execution>
-                        </executions>
-                        <configuration>
-                            <trimStackTrace>false</trimStackTrace>
-                            <enableAssertions>true</enableAssertions>
-                        </configuration>
-                    </plugin>
-                </plugins>
-            </build>
-        </profile>
     </profiles>
 </project>

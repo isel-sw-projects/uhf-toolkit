@@ -8,10 +8,9 @@ defmodule Demo.Application do
   @impl true
   def start(_type, _args) do
     children = [
-      DemoWeb.Telemetry,
-      # Demo.Repo - disabled: the BRHC demos use in-memory state (as in
-      # BlazorApp1/BRHC); without Postgres there are no connection errors at boot.
-      {DNSCluster, query: Application.get_env(:demo, :dns_cluster_query) || :ignore},
+      # The BRHC demos keep their state in memory (as in BlazorApp1/BRHC), so
+      # there is no Repo to supervise. Phoenix.PubSub backs the shared-counter
+      # fan-out (see DemoWeb.MultiClientCounterLive).
       {Phoenix.PubSub, name: Demo.PubSub},
       # Start a worker by calling: Demo.Worker.start_link(arg)
       # {Demo.Worker, arg},

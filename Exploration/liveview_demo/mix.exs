@@ -38,17 +38,19 @@ defmodule Demo.MixProject do
   # Specifies your project dependencies.
   #
   # Type `mix help deps` for examples and options.
+  #
+  # Only the dependencies the 24 BRHC examples actually use are kept: the web
+  # framework, LiveView, the asset pipeline (esbuild/tailwind, with the daisyUI
+  # and heroicons plugins the shared layout consumes) and the JSON codec the
+  # LiveView socket protocol needs. The Phoenix generators' database, mailer,
+  # HTTP client, telemetry and dashboard scaffolding is not used here and has
+  # been removed.
   defp deps do
     [
       {:phoenix, "~> 1.8.14"},
-      {:phoenix_ecto, "~> 4.5"},
-      {:ecto_sql, "~> 3.13"},
-      {:postgrex, ">= 0.0.0"},
       {:phoenix_html, "~> 4.1"},
       {:phoenix_live_reload, "~> 1.2", only: :dev},
       {:phoenix_live_view, "~> 1.2.0"},
-      {:lazy_html, ">= 0.1.0", only: :test},
-      {:phoenix_live_dashboard, "~> 0.8.3"},
       {:esbuild, "~> 0.10", runtime: Mix.env() == :dev},
       {:tailwind, "~> 0.5", runtime: Mix.env() == :dev},
       {:heroicons,
@@ -65,13 +67,8 @@ defmodule Demo.MixProject do
        app: false,
        compile: false,
        depth: 1},
-      {:swoosh, "~> 1.16"},
-      {:req, "~> 0.5"},
-      {:telemetry_metrics, "~> 1.0"},
-      {:telemetry_poller, "~> 1.0"},
       {:gettext, "~> 1.0"},
       {:jason, "~> 1.2"},
-      {:dns_cluster, "~> 0.2.0"},
       {:bandit, "~> 1.5"}
     ]
   end
@@ -84,10 +81,7 @@ defmodule Demo.MixProject do
   # See the documentation for `Mix` for more info on aliases.
   defp aliases do
     [
-      setup: ["deps.get", "ecto.setup", "assets.setup", "assets.build"],
-      "ecto.setup": ["ecto.create", "ecto.migrate", "run priv/repo/seeds.exs"],
-      "ecto.reset": ["ecto.drop", "ecto.setup"],
-      test: ["ecto.create --quiet", "ecto.migrate --quiet", "test"],
+      setup: ["deps.get", "assets.setup", "assets.build"],
       "assets.setup": ["tailwind.install --if-missing", "esbuild.install --if-missing"],
       "assets.build": ["compile", "tailwind demo", "esbuild demo"],
       "assets.deploy": [
