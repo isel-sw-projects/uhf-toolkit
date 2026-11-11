@@ -1,0 +1,9 @@
+**/BlazorApp1/**/Debug/**
+**/BlazorApp1/**/dist/**
+**/__pycache__/**
+**/tmp/**
+**/smoke-run.log
+**/.vscode/**
+!**\HtmlFlow-Datastar-Examples\**
+!**\HtmlFlow-Datastar-Examples
+**/obj/**

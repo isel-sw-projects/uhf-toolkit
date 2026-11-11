@@ -73,7 +73,9 @@
 
         public void Increment()
         {
-            value++;
+            // Interlocked keeps two simultaneous clicks from losing an increment; a
+            // plain value++ is a read-modify-write with no atomicity across circuits.
+            System.Threading.Interlocked.Increment(ref value);
             Action<int>[] snapshot;
             lock (subscribers)
             {

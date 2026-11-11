@@ -12,6 +12,9 @@ defmodule Demo.Application do
       # there is no Repo to supervise. Phoenix.PubSub backs the shared-counter
       # fan-out (see DemoWeb.MultiClientCounterLive).
       {Phoenix.PubSub, name: Demo.PubSub},
+      # The shared counter is one supervised process, so reads and increments are
+      # serialised and the value survives every connection (see Demo.CounterTable).
+      Demo.CounterTable,
       # Start a worker by calling: Demo.Worker.start_link(arg)
       # {Demo.Worker, arg},
       # Start to serve requests, typically the last entry

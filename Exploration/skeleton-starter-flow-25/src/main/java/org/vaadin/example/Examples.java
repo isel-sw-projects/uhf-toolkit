@@ -162,20 +162,74 @@ final class Examples {
         demo.add(list, more);
     }
 
-    // ---- bulk-update: data-bind:selections + @@put (bulk activate) ----
+    // ---- bulk-update: select rows, then activate or deactivate every selected row
+    // ----
     static void bulkUpdate(Div demo) {
-        List<Checkbox> boxes = new ArrayList<>();
+        // One row per user, with a status the bulk action rewrites. The original keeps
+        // the
+        // status inside the row's signal patch; here it is component state, which is
+        // what
+        // the stack offers, and the observable behaviour is the same.
+        List<StatusRow> rows = new ArrayList<>();
         for (String u : seedUsers()) {
-            boxes.add(new Checkbox(u));
+            rows.add(new StatusRow(u, "active"));
         }
-        Span feedback = new Span();
-        Button activate = new Button("Activate Selected", e -> {
-            long n = boxes.stream().filter(Checkbox::getValue).count();
-            feedback.setText(n + " user(s) activated - the mutation runs on the server.");
+
+        UnorderedList list = new UnorderedList();
+        Checkbox selectAll = new Checkbox();
+        Span feedback = new Span("0 user(s) selected");
+
+        Runnable[] refresh = new Runnable[1];
+        refresh[0] = () -> {
+            list.removeAll();
+            for (StatusRow row : rows) {
+                Checkbox box = new Checkbox(row.email + " - " + row.status);
+                box.setValue(row.selected);
+                box.addValueChangeListener(e -> {
+                    row.selected = box.getValue();
+                    selectAll.setValue(rows.stream().allMatch(r -> r.selected));
+                    feedback.setText(rows.stream().filter(r -> r.selected).count() + " user(s) selected");
+                });
+                list.add(new ListItem(box));
+            }
+            feedback.setText(rows.stream().filter(r -> r.selected).count() + " user(s) selected");
+        };
+
+        selectAll.addValueChangeListener(e -> {
+            boolean value = selectAll.getValue();
+            rows.forEach(r -> r.selected = value);
+            refresh[0].run();
+            // the "select all" checkbox drives the rest, so re-rendering resets it too
+            selectAll.setValue(value);
         });
-        demo.add(feedback, activate);
-        for (Checkbox b : boxes) {
-            demo.add(b);
+
+        Button activate = new Button("Activate Selected", e -> applyToSelected(rows, "active", refresh[0]));
+        Button deactivate = new Button("Deactivate Selected", e -> applyToSelected(rows, "inactive", refresh[0]));
+
+        refresh[0].run();
+        demo.add(selectAll, feedback, activate, deactivate, list);
+    }
+
+    /**
+     * Rewrites the status of every selected row and clears the selection, as the
+     * original does with one request and a signal patch that resets it.
+     */
+    private static void applyToSelected(List<StatusRow> rows, String status, Runnable refresh) {
+        rows.stream().filter(r -> r.selected).forEach(r -> {
+            r.status = status;
+            r.selected = false;
+        });
+        refresh.run();
+    }
+
+    private static final class StatusRow {
+        final String email;
+        String status;
+        boolean selected;
+
+        StatusRow(String email, String status) {
+            this.email = email;
+            this.status = status;
         }
     }
 
@@ -426,8 +480,13 @@ final class Examples {
                 new com.vaadin.flow.component.html.Paragraph(
                         "Open a second window at /example/multi-client-counter - the values synchronise."));
 
-        // subscribe the current view (the Kotlin example's data-init @get(events))
-        MultiClientBus.subscribe(v -> push(demo, () -> label.setText(String.valueOf(v))));
+        // subscribe the current view (the Kotlin example's data-init @get(events)).
+        // The registration waits for attach, because during construction the component
+        // has no UI yet, and it is removed when the UI detaches, so a closed window
+        // stops
+        // receiving broadcasts instead of failing every later one.
+        demo.addAttachListener(e -> demo.getUI().ifPresent(
+                ui -> MultiClientBus.subscribe(ui, v -> label.setText(String.valueOf(v)))));
     }
 
     // ---- deeplink-state: a URL como fonte do estado ----
@@ -573,17 +632,115 @@ final class Examples {
         demo.add(upload, report);
     }
 
-    // ---- todo-mvc: CRUD via @@post/@@patch/@@delete ----
+    // ---- todo-mvc: add, toggle, edit inline, delete, filter, toggle-all, clear
+    // completed ----
     static void todoMvc(Div demo) {
+        List<TodoRow> todos = new ArrayList<>();
         TextField input = new TextField("What needs to be done?");
         UnorderedList list = new UnorderedList();
+        Span pending = new Span();
+        String[] filter = { "all" };
+
+        Runnable[] refresh = new Runnable[1];
+        refresh[0] = () -> {
+            list.removeAll();
+            for (TodoRow todo : todos) {
+                if (!matches(todo, filter[0])) {
+                    continue;
+                }
+                ListItem item = new ListItem();
+                if (todo.editing) {
+                    // edit mode: the row becomes an input that saves on Enter and cancels on blur
+                    TextField edit = new TextField(todo.title);
+                    edit.addKeyDownListener(Key.ENTER, ev -> {
+                        todo.title = edit.getValue().isBlank() ? todo.title : edit.getValue();
+                        todo.editing = false;
+                        refresh[0].run();
+                    });
+                    edit.addBlurListener(ev -> {
+                        todo.editing = false;
+                        refresh[0].run();
+                    });
+                    item.add(edit);
+                } else {
+                    Checkbox done = new Checkbox(todo.title);
+                    done.setValue(todo.done);
+                    done.addValueChangeListener(ev -> {
+                        todo.done = done.getValue();
+                        refresh[0].run();
+                    });
+                    Button editButton = new Button("Edit", ev -> {
+                        todos.forEach(t -> t.editing = false);
+                        todo.editing = true;
+                        refresh[0].run();
+                    });
+                    Button deleteButton = new Button("x", ev -> {
+                        todos.remove(todo);
+                        refresh[0].run();
+                    });
+                    item.add(done, editButton, deleteButton);
+                }
+                list.add(item);
+            }
+            long left = todos.stream().filter(t -> !t.done).count();
+            pending.setText(left + " items pending");
+        };
+
         input.addKeyDownListener(Key.ENTER, e -> {
-            if (!input.getValue().isBlank()) {
-                list.add(new ListItem(input.getValue()));
+            String title = input.getValue();
+            if (title != null && !title.isBlank()) {
+                todos.add(new TodoRow(title));
                 input.clear();
+                refresh[0].run();
             }
         });
-        demo.add(input, list);
+
+        Checkbox toggleAll = new Checkbox();
+        toggleAll.addValueChangeListener(e -> {
+            boolean value = toggleAll.getValue();
+            todos.forEach(t -> t.done = value);
+            refresh[0].run();
+        });
+
+        Button all = new Button("All", e -> {
+            filter[0] = "all";
+            refresh[0].run();
+        });
+        Button active = new Button("Active", e -> {
+            filter[0] = "active";
+            refresh[0].run();
+        });
+        Button completed = new Button("Completed", e -> {
+            filter[0] = "completed";
+            refresh[0].run();
+        });
+        Button clearCompleted = new Button("Clear completed", e -> {
+            todos.removeIf(t -> t.done);
+            refresh[0].run();
+        });
+
+        refresh[0].run();
+        demo.add(input, toggleAll, pending,
+                new HorizontalLayout(all, active, completed, clearCompleted), list);
+    }
+
+    /** The three filters of the reference todo application. */
+    private static boolean matches(TodoRow todo, String filter) {
+        return switch (filter) {
+            case "active" -> !todo.done;
+            case "completed" -> todo.done;
+            default -> true;
+        };
+    }
+
+    private static final class TodoRow {
+        String title;
+        boolean done;
+        boolean editing;
+
+        TodoRow(String title) {
+            this.title = title;
+        }
     }
 }
 
@@ -598,10 +755,15 @@ final class MultiClientBus {
 
     private static final java.util.concurrent.atomic.AtomicInteger VALUE = new java.util.concurrent.atomic.AtomicInteger(
             0);
-    private static final java.util.Set<java.util.function.IntConsumer> SUBSCRIBERS = java.util.Collections
-            .synchronizedSet(new java.util.HashSet<>());
-    private static final java.util.Set<com.vaadin.flow.component.UI> UIS = java.util.Collections
-            .synchronizedSet(new java.util.HashSet<>());
+    /**
+     * One entry per open view: the UI that must hold the session lock, plus the
+     * update
+     * that changes that view's label. Keeping them together is what makes the
+     * fan-out
+     * one call per subscriber instead of one call per subscriber times one call per
+     * UI.
+     */
+    private static final java.util.Map<com.vaadin.flow.component.UI, java.util.function.IntConsumer> SUBSCRIBERS = new java.util.concurrent.ConcurrentHashMap<>();
 
     private MultiClientBus() {
     }
@@ -615,33 +777,32 @@ final class MultiClientBus {
     }
 
     /**
-     * Registers the current view as a subscriber; returns the initial value with a
-     * push.
+     * Registers the current view and pushes the current value to it. The entry is
+     * removed when the UI detaches, so a closed or navigated-away view never
+     * receives a
+     * later broadcast.
      */
-    static void subscribe(java.util.function.IntConsumer onValue) {
-        SUBSCRIBERS.add(onValue);
-        com.vaadin.flow.component.UI ui = com.vaadin.flow.component.UI.getCurrent();
-        if (ui != null) {
-            UIS.add(ui);
-            // initial value right at binding
-            onValue.accept(VALUE.get());
+    static void subscribe(com.vaadin.flow.component.UI ui, java.util.function.IntConsumer onValue) {
+        if (ui == null) {
+            return;
         }
+        SUBSCRIBERS.put(ui, onValue);
+        ui.addDetachListener(e -> SUBSCRIBERS.remove(ui));
+        ui.access((com.vaadin.flow.server.Command) () -> onValue.accept(VALUE.get()));
     }
 
     static void broadcast(int v) {
-        // ui.access is mandatory when the change does not come from that UI's
-        // request thread (in the Kotlin example the SSE bus; here, a request from
-        // another
-        // window). The UI registered in subscribe encapsulates the session lock -
-        // ui.access on it runs the update in the right session, holding the lock.
-        for (com.vaadin.flow.component.UI ui : UIS.toArray(new com.vaadin.flow.component.UI[0])) {
-            ui.access((com.vaadin.flow.server.Command) () -> {
-                for (java.util.function.IntConsumer s : SUBSCRIBERS.toArray(new java.util.function.IntConsumer[0])) {
-                    s.accept(v);
-                }
-            });
-        }
-        // nota: cada consumer executa em todas as UIs - suficiente para o
-        // didactic trace; the sender re-applies the local assign on click.
+        // ui.access is mandatory when the change does not come from that UI's request
+        // thread (the Kotlin example's SSE bus; here, a click in another window). Each
+        // access runs under the target UI's session lock, and only that UI's subscriber
+        // is invoked - a single delivery per open view.
+        SUBSCRIBERS.forEach((ui, onValue) -> {
+            try {
+                ui.access((com.vaadin.flow.server.Command) () -> onValue.accept(v));
+            } catch (com.vaadin.flow.component.UIDetachedException detached) {
+                // The UI went away between forEach and access; drop it.
+                SUBSCRIBERS.remove(ui);
+            }
+        });
     }
 }

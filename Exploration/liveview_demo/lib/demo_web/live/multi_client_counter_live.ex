@@ -12,6 +12,7 @@ defmodule DemoWeb.MultiClientCounterLive do
   @topic "shared-counter"
 
   def mount(_params, _session, socket) do
+
     if connected?(socket) do
       Phoenix.PubSub.subscribe(Demo.PubSub, @topic)
     end
@@ -37,8 +38,9 @@ defmodule DemoWeb.MultiClientCounterLive do
   end
 
   def handle_event("increment", _p, socket) do
-    v = value() + 1
-    :persistent_term.put({@topic, :value}, v)
+    # One process owns the value, so two simultaneous clicks are serialised and no
+    # increment is lost.
+    v = Demo.CounterTable.increment()
 
     # the sender already assigned; the other processes receive :value via handle_info
     Phoenix.PubSub.broadcast(Demo.PubSub, @topic, {:value, v})
@@ -50,10 +52,7 @@ defmodule DemoWeb.MultiClientCounterLive do
 
   # O "bus": o valor comum vive no processo de registo do PubSub - aqui um
   # :persistent_term is enough for this trace (same role as a shared state).
-  defp value do
-    case :persistent_term.get({@topic, :value}, nil) do
-      nil -> 0
-      v -> v
-    end
-  end
+  # The table must outlive the request process that happens to create it, so creation
+  # is serialised through the module and the owner is a long-lived process.
+  defp value, do: Demo.CounterTable.value()
 end
